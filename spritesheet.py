@@ -24,19 +24,19 @@ class Spritesheet(object):
         individual_sprite_pos = []
         all_sprite_pos = []
 
-        sprites_dict = {}
+        sprites_coords = {}
         
         for i in range(1, number_of_states + 1):
             for j in range(1, sprites_per_state +1):
-          
-                coord = ( (j-1) * sprite_w, (i-1) * sprite_h)
+
+                coord = pygame.math.Vector2( (j-1) * sprite_w, (i-1) * sprite_h)
                 individual_sprite_pos.append(coord)
             all_sprite_pos.append(individual_sprite_pos)
 
         for i in range(len(all_sprite_pos)):
-            sprites_dict["sprite{}".format(i+1)] = all_sprite_pos[i] 
-
-        return sprites_dict
+            sprites_coords["sprite{}".format(i+1)] = all_sprite_pos[i] 
+        
+        return sprites_coords
     
 
 """ class PlayerSprite(Spritesheet):
