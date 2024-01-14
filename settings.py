@@ -4,6 +4,7 @@ class Direction(Enum):
     RIGHT = 1
     DOWN = 2
     LEFT = 3
+SCALE = 3
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 SCREEN_COLOR = "black"
@@ -17,3 +18,4 @@ PLAYER_COLOR = "white"
 
 SPRITES_WIDTH, SPRITE_HEIGHT = 16, 16
 ASSAULT_PLAYER_SPRITESHEET = "./assets/Soldiers/Assault-Class.png"
+FLOOR = "./assets/graphics/floor.png"

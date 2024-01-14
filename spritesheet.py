@@ -1,5 +1,5 @@
 import pygame
-from settings import SPRITES_WIDTH, SPRITE_HEIGHT
+from settings import SPRITES_WIDTH, SPRITE_HEIGHT, SCALE
 
 class Spritesheet(object):
     def __init__(self, filename):
@@ -11,7 +11,7 @@ class Spritesheet(object):
         sprite.set_colorkey((0,0,0))
         sprite.blit(self.spritesheet,(0,0), (x,y, w, h))
         
-        return pygame.transform.scale(sprite, (w*4, h*4))
+        return pygame.transform.scale(sprite, (w*SCALE, h*SCALE))
     
     def parse_sheet(self, sprite_w: int, sprite_h: int):
 
