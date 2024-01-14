@@ -3,7 +3,7 @@ from settings import *
 from spritesheet import Spritesheet
 
 class PlayerSprite(pygame.sprite.Sprite):
-    def __init__(self,pos, group):
+    def __init__(self,pos, group, collision_sprites):
         pygame.sprite.Sprite.__init__(self, group)
         self.spritesheet = Spritesheet(ASSAULT_PLAYER_SPRITESHEET)
 
@@ -13,12 +13,16 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.image = self.idle_sprites[self.current_sprite]
         self.idle = True        
         self.rect = self.image.get_rect(center = pos)
+        self.hitbox = self.rect.copy().inflate((-4*SCALE, -4*SCALE))
 
         # Movement Attributes
         self.status = "right"
         self.direction = pygame.math.Vector2()
         self.pos = pygame.math.Vector2(self.rect.center)
         self.velocity = PLAYER_VELOCITY
+
+        #Collision
+        self.collision_sprites = collision_sprites
 
     
     def load_sprites(self):
@@ -132,10 +136,33 @@ class PlayerSprite(pygame.sprite.Sprite):
             self.idle = True
             self.direction.x = 0
 
+    def collision(self, direction):
+        for sprite in self.collision_sprites.sprites():
+            if hasattr(sprite, "hitbox"):
+                if sprite.hitbox.colliderect(self.hitbox):
+                    if direction == "horizontal":
+                        if self.direction.x > 0: self.hitbox.right = sprite.hitbox.left
+                        if self.direction.x < 0: self.hitbox.left = sprite.hitbox.right
+                        self.rect.centerx = self.hitbox.centerx
+                        self.pos.x = self.hitbox.centerx
+                    if direction == "vertical":
+                        if self.direction.y > 0: self.hitbox.bottom = sprite.hitbox.top
+                        if self.direction.y < 0: self.hitbox.top = sprite.hitbox.bottom
+                        self.rect.centery = self.hitbox.centery
+                        self.pos.y = self.hitbox.centery
+
 
     def handle_movement(self, delta_time):
-        self.pos += self.velocity * self.direction * delta_time
-        self.rect.center = self.pos
+
+        self.pos.x += self.velocity * self.direction.x * delta_time
+        self.hitbox.centerx = round(self.pos.x)
+        self.rect.centerx = self.hitbox.centerx
+        self.collision("horizontal")
+
+        self.pos.y += self.velocity * self.direction.y * delta_time
+        self.hitbox.centery = round(self.pos.y)
+        self.rect.centery = self.hitbox.centery
+        self.collision("vertical")
 
     
 

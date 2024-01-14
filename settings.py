@@ -6,6 +6,8 @@ class Direction(Enum):
     LEFT = 3
 SCALE = 3
 
+TILE_SIZE = 16 * SCALE
+
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 SCREEN_COLOR = "black"
 

@@ -9,6 +9,7 @@ class GameScene:
         self.all_sprites = CameraGroup()
         self.display_surface = pygame.display.get_surface()
         self.floor_img = pygame.image.load(FLOOR).convert_alpha()
+        self.collision_sprites = pygame.sprite.Group()
         self.setup()
         
     
@@ -18,13 +19,16 @@ class GameScene:
 
         Generic(pos = (0,0),
                 surface = pygame.transform.scale(self.floor_img, 
-                                                 (self.floor_img.get_width() *SCALE, self.floor_img.get_height() * SCALE) ),
+                                                 (self.floor_img.get_width() * SCALE, self.floor_img.get_height() * SCALE) ),
                 group= self.all_sprites)
         
+        
+        for x,y,surface in tmx_data.get_layer_by_name("Collision").tiles():
+            Generic((x*TILE_SIZE, y * TILE_SIZE ), pygame.surface.Surface((TILE_SIZE, TILE_SIZE)), self.collision_sprites)
 
         for obj in tmx_data.get_layer_by_name("Player"):
             if obj.name == "Start":
-                self.player = PlayerSprite( (obj.x* SCALE, obj.y* SCALE), self.all_sprites)
+                self.player = PlayerSprite( (obj.x* SCALE, obj.y* SCALE), self.all_sprites, self.collision_sprites)
 
     def handle_events(self, event):
         pass
