@@ -12,9 +12,8 @@ class Game:
         self.clock = pygame.time.Clock()
         self.running = True
         self.manager = SceneManager(GameScene())
-        self.dt = 10
-        self.spritesheet = Spritesheet(ASSAULT_PLAYER_SPRITESHEET)        
-        self.assault_player = self.spritesheet.get_sprite(0,0,16,16)
+        self.dt = 0
+        
 
     def run(self):
         while self.running:

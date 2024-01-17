@@ -1,9 +1,9 @@
 import pygame
-from settings import SPRITES_WIDTH, SPRITE_HEIGHT, SCALE
+from settings import SPRITE_WIDTH, SPRITE_HEIGHT, SCALE
 
 class Spritesheet(object):
     def __init__(self, filename):
-        self.spritesheet = pygame.image.load(filename)
+        self.spritesheet = pygame.image.load(filename).convert_alpha()
 
 
     def get_sprite(self, x, y , w, h):
@@ -21,22 +21,22 @@ class Spritesheet(object):
         sprites_per_state = int(sheet_w / sprite_w)
         number_of_states = int(sheet_h / sprite_h)
 
-        individual_sprite_pos = []
-        all_sprite_pos = []
+        state = []
+        all_states = []
 
-        sprites_coords = {}
+        all_sprites = {}
         
         for i in range(1, number_of_states + 1):
             for j in range(1, sprites_per_state +1):
 
                 coord = pygame.math.Vector2( (j-1) * sprite_w, (i-1) * sprite_h)
-                individual_sprite_pos.append(coord)
-            all_sprite_pos.append(individual_sprite_pos)
+                state.append(coord)
+            all_states.append(state)
 
-        for i in range(len(all_sprite_pos)):
-            sprites_coords["sprite{}".format(i+1)] = all_sprite_pos[i] 
+        for i in range(len(all_states)):
+            all_sprites["sprite{}".format(i+1)] = all_states[i] 
         
-        return sprites_coords
+        return all_sprites
     
 
 """ class PlayerSprite(Spritesheet):

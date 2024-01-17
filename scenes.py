@@ -1,8 +1,9 @@
 import pygame
-from player import Player, PlayerSprite
+from player import *
 from settings import *
 from sprites import Generic
 from pytmx.util_pygame import load_pygame
+from random import randint
 
 class GameScene:
     def __init__(self):
@@ -28,8 +29,14 @@ class GameScene:
 
         for obj in tmx_data.get_layer_by_name("Player"):
             if obj.name == "Start":
+                
                 self.player = PlayerSprite( (obj.x* SCALE, obj.y* SCALE), self.all_sprites, self.collision_sprites)
+           
 
+        # Enemies
+        self.Scarabs = [Scarab( (randint(0,SCREEN_WIDTH *SCALE), randint(0, SCREEN_HEIGHT * SCALE)), self.all_sprites, self.collision_sprites) for i in range(20)]
+        self.spiders = [Spider( (randint(0,SCREEN_WIDTH *SCALE), randint(0, SCREEN_HEIGHT * SCALE)), self.all_sprites, self.collision_sprites) for i in range(20)]
+        
     def handle_events(self, event):
         pass
     def render(self, screen):

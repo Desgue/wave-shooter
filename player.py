@@ -6,7 +6,6 @@ class PlayerSprite(pygame.sprite.Sprite):
     def __init__(self,pos, group, collision_sprites):
         pygame.sprite.Sprite.__init__(self, group)
         self.spritesheet = Spritesheet(ASSAULT_PLAYER_SPRITESHEET)
-
         
         self.load_sprites()
         self.current_sprite = 0
@@ -26,72 +25,72 @@ class PlayerSprite(pygame.sprite.Sprite):
 
     
     def load_sprites(self):
-        self.sprites_coords = self.spritesheet.parse_sheet(SPRITES_WIDTH, SPRITE_HEIGHT)
+        sprites_coords = self.spritesheet.parse_sheet(SPRITE_WIDTH, SPRITE_HEIGHT)
 
         self.idle_sprites = [
             self.spritesheet.get_sprite(
-            self.sprites_coords["sprite1"][:2][i].x,
-            self.sprites_coords["sprite1"][:2][i].y,
+            sprites_coords["sprite1"][:2][i].x,
+            sprites_coords["sprite1"][:2][i].y,
             PLAYER_WIDTH, PLAYER_HEIGHT
             ) 
-            for i in range(len(self.sprites_coords["sprite1"][:2]))
+            for i in range(len(sprites_coords["sprite1"][:2]))
             ]
         
         self.walk_sprites = [
             self.spritesheet.get_sprite(
-            self.sprites_coords["sprite2"][:2][i].x,
-            self.sprites_coords["sprite2"][:2][i].y,
+            sprites_coords["sprite2"][:2][i].x,
+            sprites_coords["sprite2"][:2][i].y,
             PLAYER_WIDTH, PLAYER_HEIGHT
             ) 
-            for i in range(len(self.sprites_coords["sprite2"][:2]))
+            for i in range(len(sprites_coords["sprite2"][:2]))
             ]
         self.crawl_sprites = [
             self.spritesheet.get_sprite(
-            self.sprites_coords["sprite3"][:2][i].x,
-            self.sprites_coords["sprite3"][:2][i].y,
+            sprites_coords["sprite3"][:2][i].x,
+            sprites_coords["sprite3"][:2][i].y,
             PLAYER_WIDTH, PLAYER_HEIGHT
             ) 
-            for i in range(len(self.sprites_coords["sprite3"][:2]))
+            for i in range(len(sprites_coords["sprite3"][:2]))
             ]
         self.fire_sprites = [
             self.spritesheet.get_sprite(
-            self.sprites_coords["sprite4"][:2][i].x,
-            self.sprites_coords["sprite4"][:2][i].y,
+            sprites_coords["sprite4"][:2][i].x,
+            sprites_coords["sprite4"][:2][i].y,
             PLAYER_WIDTH, PLAYER_HEIGHT
             ) 
-            for i in range(len(self.sprites_coords["sprite4"][:2]))
+            for i in range(len(sprites_coords["sprite4"][:2]))
             ]
         self.hit_sprites = [
             self.spritesheet.get_sprite(
-            self.sprites_coords["sprite5"][:3][i].x,
-            self.sprites_coords["sprite5"][:3][i].y,
+            sprites_coords["sprite5"][:3][i].x,
+            sprites_coords["sprite5"][:3][i].y,
             PLAYER_WIDTH, PLAYER_HEIGHT
             ) 
-            for i in range(len(self.sprites_coords["sprite5"][:3]))
+            for i in range(len(sprites_coords["sprite5"][:3]))
             ]
         
         self.death_sprites = [
             self.spritesheet.get_sprite(
-            self.sprites_coords["sprite6"][i].x,
-            self.sprites_coords["sprite6"][i].y,
+            sprites_coords["sprite6"][i].x,
+            sprites_coords["sprite6"][i].y,
             PLAYER_WIDTH, PLAYER_HEIGHT
             ) 
-            for i in range(len(self.sprites_coords["sprite6"]))
+            for i in range(len(sprites_coords["sprite6"]))
             ]
         self.throw_sprites = [
             self.spritesheet.get_sprite(
-            self.sprites_coords["sprite7"][:3][i].x,
-            self.sprites_coords["sprite7"][:3][i].y,
+            sprites_coords["sprite7"][:3][i].x,
+            sprites_coords["sprite7"][:3][i].y,
             PLAYER_WIDTH, PLAYER_HEIGHT
             ) 
-            for i in range(len(self.sprites_coords["sprite7"][:3]))
+            for i in range(len(sprites_coords["sprite7"][:3]))
             ]
     
 
 
     def animate(self, dt):
         if self.idle:
-            self.current_sprite += 4 * dt
+            self.current_sprite += 3 * dt
             if self.current_sprite >= len(self.idle_sprites):
                 self.current_sprite = 0
             self.image = self.idle_sprites[int(self.current_sprite)]
@@ -164,39 +163,191 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.rect.centery = self.hitbox.centery
         self.collision("vertical")
 
-    
+class Scarab(pygame.sprite.Sprite):
+    def __init__(self,pos, group, collision_sprites):
+        pygame.sprite.Sprite.__init__(self, group)
 
-class Player(pygame.Rect):
-    def __init__(self, 
-                 left: float = PlAYER_X_CENTER, 
-                 top: float = PLAYER_Y_CENTER, 
-                 width: float = PLAYER_WIDTH, 
-                 height: float = PLAYER_HEIGHT):
+        # Sprite Config
+        self.spritesheet = Spritesheet(SCARAB_SPRITESHEET)
+        self.load_sprites()
+        self.current_sprite = 0
+        self.image = self.idle_sprites[self.current_sprite]
+        self.idle = True        
+        self.rect = self.image.get_rect(center = pos)
+        self.hitbox = self.rect.copy().inflate((-4*SCALE, -4*SCALE))
+
+        # Collision
+        self.collision_sprites = collision_sprites
+
+
+
+    def load_sprites(self):
+        sprites_coords = self.spritesheet.parse_sheet(SPRITE_WIDTH, SPRITE_HEIGHT)
+
+        self.idle_sprites = [
+            self.spritesheet.get_sprite(
+            sprites_coords["sprite1"][:2][i].x,
+            sprites_coords["sprite1"][:2][i].y,
+            SPRITE_WIDTH, SPRITE_HEIGHT
+            ) 
+            for i in range(len(sprites_coords["sprite1"][:2]))
+            ]
+
+        self.walk_sprites = [
+            self.spritesheet.get_sprite(
+            sprites_coords["sprite2"][:4][i].x,
+            sprites_coords["sprite2"][:4][i].y,
+            SPRITE_WIDTH, SPRITE_HEIGHT
+            ) 
+            for i in range(len(sprites_coords["sprite2"][:4]))
+            ]
         
-        super().__init__(left, top, width, height)
-        self.color = PLAYER_COLOR
-        self.velocity = PLAYER_VELOCITY
-
-    def handle_movement(self, delta_time):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_w] or keys[pygame.K_UP]:
-            self.move(Direction.UP, delta_time)
-        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-            self.move(Direction.DOWN, delta_time)
-        if (keys[pygame.K_a] or keys[pygame.K_LEFT]) :
-            self.move(Direction.LEFT, delta_time)
-        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            self.move(Direction.RIGHT, delta_time)
-
-    def move(self,  direction: str, delta_time: float,):
-        match direction:
-            case Direction.UP:
-                self.rect.y -= self.velocity *delta_time
-                print(self.rect.y)
-            case Direction.DOWN:
-                self.rect.y += self.velocity *delta_time
-            case Direction.LEFT:
-                self.rect.x -= self.velocity *delta_time
-            case Direction.RIGHT:
-                self.rect.x += self.velocity *delta_time
+        self.firing_sprites = [
+            self.spritesheet.get_sprite(
+            sprites_coords["sprite3"][:2][i].x,
+            sprites_coords["sprite3"][:2][i].y,
+            SPRITE_WIDTH, SPRITE_HEIGHT
+            ) 
+            for i in range(len(sprites_coords["sprite3"][:2]))
+            ]
+        
+        self.melee_sprites = [
+            self.spritesheet.get_sprite(
+            sprites_coords["sprite4"][i].x,
+            sprites_coords["sprite4"][i].y,
+            SPRITE_WIDTH, SPRITE_HEIGHT
+            ) 
+            for i in range(len(sprites_coords["sprite4"]))
+            ]
+        
+        self.destroyed_sprites = [
+            self.spritesheet.get_sprite(
+            sprites_coords["sprite5"][:1][i].x,
+            sprites_coords["sprite5"][:1][i].y,
+            SPRITE_WIDTH, SPRITE_HEIGHT
+            ) 
+            for i in range(len(sprites_coords["sprite5"][:1]))
+            ]
     
+    def animate(self, dt):
+        if self.idle:
+            self.current_sprite += 3 * dt
+            if self.current_sprite >= len(self.idle_sprites):
+                self.current_sprite = 0
+            self.image = self.idle_sprites[int(self.current_sprite)]
+
+    def update(self, dt):
+        self.animate(dt)
+
+class Spider(pygame.sprite.Sprite):
+    def __init__(self, pos, group, collision_sprites) -> None:
+        super().__init__(group)
+         # Sprite Config
+        self.spritesheet = Spritesheet(SPIDER_SPRITESHEET)
+        self.load_sprites()
+        self.current_sprite = 0
+        self.image = self.idle_sprites[self.current_sprite]
+        self.idle = True        
+        self.rect = self.image.get_rect(center = pos)
+        self.hitbox = self.rect.copy().inflate((-4*SCALE, -4*SCALE))
+
+        # Collision
+        self.collision_sprites = collision_sprites
+
+
+
+    def load_sprites(self):
+        sprites_coords = self.spritesheet.parse_sheet(SPRITE_WIDTH, SPRITE_HEIGHT)
+
+        self.idle_sprites = [
+            self.spritesheet.get_sprite(
+            sprites_coords["sprite1"][:2][i].x,
+            sprites_coords["sprite1"][:2][i].y,
+            SPRITE_WIDTH, SPRITE_HEIGHT
+            ) 
+            for i in range(len(sprites_coords["sprite1"][:2]))
+            ]
+
+        self.walk_sprites = [
+            self.spritesheet.get_sprite(
+            sprites_coords["sprite2"][:4][i].x,
+            sprites_coords["sprite2"][:4][i].y,
+            SPRITE_WIDTH, SPRITE_HEIGHT
+            ) 
+            for i in range(len(sprites_coords["sprite2"][:4]))
+            ]
+        
+        self.firing_sprites = [
+            self.spritesheet.get_sprite(
+            sprites_coords["sprite3"][:2][i].x,
+            sprites_coords["sprite3"][:2][i].y,
+            SPRITE_WIDTH, SPRITE_HEIGHT
+            ) 
+            for i in range(len(sprites_coords["sprite3"][:2]))
+            ]
+        
+        self.melee_sprites = [
+            self.spritesheet.get_sprite(
+            sprites_coords["sprite4"][i].x,
+            sprites_coords["sprite4"][i].y,
+            SPRITE_WIDTH, SPRITE_HEIGHT
+            ) 
+            for i in range(len(sprites_coords["sprite4"]))
+            ]
+        
+        self.destroyed_sprites = [
+            self.spritesheet.get_sprite(
+            sprites_coords["sprite5"][:1][i].x,
+            sprites_coords["sprite5"][:1][i].y,
+            SPRITE_WIDTH, SPRITE_HEIGHT
+            ) 
+            for i in range(len(sprites_coords["sprite5"][:1]))
+            ]
+    
+    def animate(self, dt):
+        if self.idle:
+            self.current_sprite += 3 * dt
+            if self.current_sprite >= len(self.idle_sprites):
+                self.current_sprite = 0
+            self.image = self.idle_sprites[int(self.current_sprite)]
+
+    def update(self, dt):
+        self.animate(dt)
+
+class Wasp(pygame.sprite.Sprite):
+    def __init__(self, pos, group, collision_sprites) -> None:
+        super().__init__(group)
+         # Sprite Config
+        self.spritesheet = Spritesheet(WASP_SPRITESHEET)
+        self.load_sprites()
+        self.current_sprite = 0
+        self.image = self.sprites[self.current_sprite]
+        self.idle = True        
+        self.rect = self.image.get_rect(center = pos)
+        self.hitbox = self.rect.copy().inflate((-4*SCALE, -4*SCALE))
+
+        # Collision
+        self.collision_sprites = collision_sprites
+
+
+
+    def load_sprites(self):
+        sprites_coords = self.spritesheet.parse_sheet(SPRITE_WIDTH, SPRITE_HEIGHT)
+
+        self.sprites = [
+            self.spritesheet.get_sprite(
+            sprites_coords["sprite1"][i].x,
+            sprites_coords["sprite1"][i].y,
+            SPRITE_WIDTH, SPRITE_HEIGHT
+            ) 
+            for i in range(len(sprites_coords["sprite1"]))
+            ]
+    
+    def animate(self, dt):
+        self.current_sprite += 2 * dt
+        if self.current_sprite >= len(self.sprites):
+            self.current_sprite = 0
+        self.image = self.sprites[int(self.current_sprite)]
+
+    def update(self, dt):
+        self.animate(dt)
