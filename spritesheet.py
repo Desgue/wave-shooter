@@ -1,6 +1,8 @@
 import pygame
 from settings import SPRITE_WIDTH, SPRITE_HEIGHT, SCALE
 
+
+
 class Spritesheet(object):
     def __init__(self, filename):
         self.spritesheet = pygame.image.load(filename).convert_alpha()

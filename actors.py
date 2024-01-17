@@ -1,6 +1,7 @@
 import pygame
 from settings import *
 from spritesheet import Spritesheet
+from random import randrange
 
 class Player(pygame.sprite.Sprite):
     def __init__(self,pos, group, collision_sprites):
@@ -12,7 +13,7 @@ class Player(pygame.sprite.Sprite):
         self.image = self.idle_sprites[self.current_sprite]
         self.idle = True        
         self.rect = self.image.get_rect(center = pos)
-        self.hitbox = self.rect.copy().inflate((-self.rect.width* 0.25*SCALE, -self.rect.height* 0.3*SCALE))
+        self.hitbox = self.rect.copy().inflate((-self.rect.width * SCALE * 0.15 , -self.rect.height * SCALE * 0.15))
 
         # Movement Attributes
         self.status = "right"
@@ -153,6 +154,9 @@ class Player(pygame.sprite.Sprite):
         self.rect.centery = self.hitbox.centery
         self.collision("vertical")
 
+    def shoot(self):
+        pass
+
     def update(self, delta_time):
         self.animate(delta_time)
         self.flip()
@@ -165,13 +169,13 @@ class Scarab(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self, group)
 
         # Sprite Config
-        self.spritesheet = Spritesheet(SCARAB_SPRITESHEET)
+        self.spritesheet = SCARAB_SPRITESHEET
         self.load_sprites()
         self.current_sprite = 0
         self.image = self.idle_sprites[self.current_sprite]
         self.idle = True        
         self.rect = self.image.get_rect(center = pos)
-        self.hitbox = self.rect.copy().inflate((-self.rect.width* 0.25*SCALE, -self.rect.height* 0.25**SCALE))
+        self.hitbox = self.rect.copy().inflate((-self.rect.width* 0.25*SCALE, -self.rect.height* 0.25 * SCALE))
 
         # Collision
         self.collision_sprites = collision_sprites
@@ -239,22 +243,24 @@ class Scarab(pygame.sprite.Sprite):
         
 
 class Spider(pygame.sprite.Sprite):
-    def __init__(self, pos, group, collision_sprites) -> None:
+    def __init__(self, group, collision_sprites) -> None:
         super().__init__(group)
-         # Sprite Config
-        self.spritesheet = Spritesheet(SPIDER_SPRITESHEET)
-        self.load_sprites()
-        self.current_sprite = 0
-        self.image = self.idle_sprites[self.current_sprite]
-        self.idle = True        
-        self.rect = self.image.get_rect(center = pos)
-        self.hitbox = self.rect.copy().inflate((-4*SCALE, -4*SCALE))
-
-        # Collision
+        self.display = pygame.display.get_surface()
+        # Collision sprite group
         self.collision_sprites = collision_sprites
+         # Sprite Config
+        self.spritesheet = Spritesheet(SPIDER_SPRITESHEET_SRC)
+        self.idle = True 
+        self.current_sprite = 0       
+        self.load_sprites()
+        self.image = self.idle_sprites[self.current_sprite]
+        self.randomize_pos()
 
-
-
+    def randomize_pos(self):
+        left, top  = float(randrange(0, SCREEN_WIDTH *SCALE, SPRITE_WIDTH * SCALE)), float(randrange(0, SCREEN_HEIGHT * SCALE, SPRITE_HEIGHT * SCALE))
+        self.rect = self.image.get_rect(center = (left,top))
+        self.hitbox = self.rect.copy().inflate(-SPRITE_WIDTH * SCALE * 0.2, -SPRITE_HEIGHT * SCALE * 0.2)
+            
     def load_sprites(self):
         sprites_coords = self.spritesheet.parse_sheet(SPRITE_WIDTH, SPRITE_HEIGHT)
 

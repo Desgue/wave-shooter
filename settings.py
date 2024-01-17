@@ -1,9 +1,3 @@
-from enum import Enum
-class Direction(Enum):
-    UP = 0
-    RIGHT = 1
-    DOWN = 2
-    LEFT = 3
 SCALE = 2
 
 TILE_SIZE = 16 * SCALE
@@ -20,7 +14,7 @@ PLAYER_COLOR = "white"
 
 SPRITE_WIDTH, SPRITE_HEIGHT = 16, 16
 ASSAULT_PLAYER_SPRITESHEET = "./assets/Soldiers/Assault-Class.png"
-SCARAB_SPRITESHEET = "./assets/Robots/Scarab.png"
-SPIDER_SPRITESHEET = "./assets/Robots/Spider.png"
+SCARAB_SPRITESHEET_SRC = "./assets/Robots/Scarab.png"
+SPIDER_SPRITESHEET_SRC = "./assets/Robots/Spider.png"
 WASP_SPRITESHEET = "./assets/Robots/Wasp.png"
 FLOOR = "./assets/graphics/floor.png"

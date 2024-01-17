@@ -1,17 +1,21 @@
+from os import scandir
 import pygame
 from actors import *
 from settings import *
 from sprites import Generic
 from pytmx.util_pygame import load_pygame
-from random import randint
+
 
 class GameScene:
     def __init__(self):
-        self.all_sprites = CameraGroup()
         self.display_surface = pygame.display.get_surface()
         self.floor_img = pygame.image.load(FLOOR).convert_alpha()
+        self.all_sprites = CameraGroup()
         self.collision_sprites = pygame.sprite.Group()
-        self.setup()      
+        self.enemy_sprites = pygame.sprite.Group()
+        self.enemies = []
+        self.max_enemies = 100
+        self.setup()
     
     def setup(self):
         
@@ -22,15 +26,15 @@ class GameScene:
                                                  (self.floor_img.get_width() * SCALE, self.floor_img.get_height() * SCALE) ),
                 group= self.all_sprites)
         
-        
+        # Collision Group
         for x,y,surface in tmx_data.get_layer_by_name("Collision").tiles():
             Generic((x*TILE_SIZE, y * TILE_SIZE ), pygame.surface.Surface((TILE_SIZE, TILE_SIZE)), self.collision_sprites)
 
+        #Spawn Player
         for obj in tmx_data.get_layer_by_name("Player"):
             if obj.name == "Start":
-                
                 self.player = Player( (obj.x* SCALE, obj.y* SCALE), self.all_sprites, self.collision_sprites)
-           
+
         # Enemies
         self.generate_enemies()
 
@@ -44,8 +48,18 @@ class GameScene:
         self.all_sprites.update(delta_time)
 
     def generate_enemies(self):
-        self.scarab = Scarab( (800* SCALE, 400* SCALE), [self.all_sprites, self.collision_sprites], self.collision_sprites)
-        self.spider = Spider( (700* SCALE, 400* SCALE), [self.all_sprites, self.collision_sprites], self.collision_sprites)
+        # Generate x number of enemies per wave
+        count = 0
+        for i in range(self.max_enemies):
+            spider=(Spider( [self.all_sprites, self.enemy_sprites, self.collision_sprites], self.collision_sprites))
+            for sprite in self.collision_sprites.sprites():
+                if hasattr(sprite, "hitbox"):
+                    if spider.hitbox.colliderect(sprite.hitbox):
+                        count += 1   
+        # check if enemy is generated in collision block          
+        print(count)
+        # Generate enemies constantly for x amount of time
+
 
 class CameraGroup(pygame.sprite.Group):
     def __init__(self):
