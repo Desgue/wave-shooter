@@ -1,5 +1,5 @@
 import pygame
-from player import *
+from actors import *
 from settings import *
 from sprites import Generic
 from pytmx.util_pygame import load_pygame
@@ -11,8 +11,7 @@ class GameScene:
         self.display_surface = pygame.display.get_surface()
         self.floor_img = pygame.image.load(FLOOR).convert_alpha()
         self.collision_sprites = pygame.sprite.Group()
-        self.setup()
-        
+        self.setup()      
     
     def setup(self):
         
@@ -30,12 +29,11 @@ class GameScene:
         for obj in tmx_data.get_layer_by_name("Player"):
             if obj.name == "Start":
                 
-                self.player = PlayerSprite( (obj.x* SCALE, obj.y* SCALE), self.all_sprites, self.collision_sprites)
+                self.player = Player( (obj.x* SCALE, obj.y* SCALE), self.all_sprites, self.collision_sprites)
            
-
         # Enemies
-        self.Scarabs = [Scarab( (randint(0,SCREEN_WIDTH *SCALE), randint(0, SCREEN_HEIGHT * SCALE)), self.all_sprites, self.collision_sprites) for i in range(20)]
-        self.spiders = [Spider( (randint(0,SCREEN_WIDTH *SCALE), randint(0, SCREEN_HEIGHT * SCALE)), self.all_sprites, self.collision_sprites) for i in range(20)]
+        self.generate_enemies()
+
         
     def handle_events(self, event):
         pass
@@ -44,6 +42,10 @@ class GameScene:
         self.all_sprites.custom_draw(self.player)
     def update(self, delta_time):
         self.all_sprites.update(delta_time)
+
+    def generate_enemies(self):
+        self.scarab = Scarab( (800* SCALE, 400* SCALE), [self.all_sprites, self.collision_sprites], self.collision_sprites)
+        self.spider = Spider( (700* SCALE, 400* SCALE), [self.all_sprites, self.collision_sprites], self.collision_sprites)
 
 class CameraGroup(pygame.sprite.Group):
     def __init__(self):

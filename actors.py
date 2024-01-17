@@ -2,7 +2,7 @@ import pygame
 from settings import *
 from spritesheet import Spritesheet
 
-class PlayerSprite(pygame.sprite.Sprite):
+class Player(pygame.sprite.Sprite):
     def __init__(self,pos, group, collision_sprites):
         pygame.sprite.Sprite.__init__(self, group)
         self.spritesheet = Spritesheet(ASSAULT_PLAYER_SPRITESHEET)
@@ -12,7 +12,7 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.image = self.idle_sprites[self.current_sprite]
         self.idle = True        
         self.rect = self.image.get_rect(center = pos)
-        self.hitbox = self.rect.copy().inflate((-4*SCALE, -4*SCALE))
+        self.hitbox = self.rect.copy().inflate((-self.rect.width* 0.25*SCALE, -self.rect.height* 0.3*SCALE))
 
         # Movement Attributes
         self.status = "right"
@@ -22,8 +22,7 @@ class PlayerSprite(pygame.sprite.Sprite):
 
         #Collision
         self.collision_sprites = collision_sprites
-
-    
+     
     def load_sprites(self):
         sprites_coords = self.spritesheet.parse_sheet(SPRITE_WIDTH, SPRITE_HEIGHT)
 
@@ -85,8 +84,6 @@ class PlayerSprite(pygame.sprite.Sprite):
             ) 
             for i in range(len(sprites_coords["sprite7"][:3]))
             ]
-    
-
 
     def animate(self, dt):
         if self.idle:
@@ -100,16 +97,6 @@ class PlayerSprite(pygame.sprite.Sprite):
             if self.current_sprite >= len(self.walk_sprites):
                 self.current_sprite = 0
             self.image = self.walk_sprites[int(self.current_sprite)]
-           
-    def update(self, delta_time):
-        self.animate(delta_time)
-        self.flip()
-        self.input()
-        self.handle_movement(delta_time)
-
-    def flip(self):
-        if self.status == "left":
-            self.image = pygame.transform.flip(self.image, True, False)
 
     def input(self):
         keys = pygame.key.get_pressed()
@@ -134,7 +121,11 @@ class PlayerSprite(pygame.sprite.Sprite):
         else: 
             self.idle = True
             self.direction.x = 0
-
+    
+    def flip(self):
+        if self.status == "left":
+            self.image = pygame.transform.flip(self.image, True, False)
+    
     def collision(self, direction):
         for sprite in self.collision_sprites.sprites():
             if hasattr(sprite, "hitbox"):
@@ -150,7 +141,6 @@ class PlayerSprite(pygame.sprite.Sprite):
                         self.rect.centery = self.hitbox.centery
                         self.pos.y = self.hitbox.centery
 
-
     def handle_movement(self, delta_time):
 
         self.pos.x += self.velocity * self.direction.x * delta_time
@@ -163,6 +153,13 @@ class PlayerSprite(pygame.sprite.Sprite):
         self.rect.centery = self.hitbox.centery
         self.collision("vertical")
 
+    def update(self, delta_time):
+        self.animate(delta_time)
+        self.flip()
+        self.input()
+        self.handle_movement(delta_time)
+
+
 class Scarab(pygame.sprite.Sprite):
     def __init__(self,pos, group, collision_sprites):
         pygame.sprite.Sprite.__init__(self, group)
@@ -174,13 +171,11 @@ class Scarab(pygame.sprite.Sprite):
         self.image = self.idle_sprites[self.current_sprite]
         self.idle = True        
         self.rect = self.image.get_rect(center = pos)
-        self.hitbox = self.rect.copy().inflate((-4*SCALE, -4*SCALE))
+        self.hitbox = self.rect.copy().inflate((-self.rect.width* 0.25*SCALE, -self.rect.height* 0.25**SCALE))
 
         # Collision
         self.collision_sprites = collision_sprites
-
-
-
+        
     def load_sprites(self):
         sprites_coords = self.spritesheet.parse_sheet(SPRITE_WIDTH, SPRITE_HEIGHT)
 
@@ -229,15 +224,19 @@ class Scarab(pygame.sprite.Sprite):
             for i in range(len(sprites_coords["sprite5"][:1]))
             ]
     
-    def animate(self, dt):
+    def animate(self, delta_time):
         if self.idle:
-            self.current_sprite += 3 * dt
+            self.current_sprite += 3 * delta_time
             if self.current_sprite >= len(self.idle_sprites):
                 self.current_sprite = 0
             self.image = self.idle_sprites[int(self.current_sprite)]
 
-    def update(self, dt):
-        self.animate(dt)
+    def handle_movement(self, delta_time):
+        pass
+    
+    def update(self, delta_time):
+        self.animate(delta_time)
+        
 
 class Spider(pygame.sprite.Sprite):
     def __init__(self, pos, group, collision_sprites) -> None:
@@ -313,6 +312,7 @@ class Spider(pygame.sprite.Sprite):
 
     def update(self, dt):
         self.animate(dt)
+
 
 class Wasp(pygame.sprite.Sprite):
     def __init__(self, pos, group, collision_sprites) -> None:

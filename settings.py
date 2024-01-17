@@ -4,7 +4,7 @@ class Direction(Enum):
     RIGHT = 1
     DOWN = 2
     LEFT = 3
-SCALE = 3
+SCALE = 2
 
 TILE_SIZE = 16 * SCALE
 
