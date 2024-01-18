@@ -36,27 +36,29 @@ class GameScene:
                 self.player = Player( (obj.x* SCALE, obj.y* SCALE), self.all_sprites, self.collision_sprites)
 
         # Enemies
-        for i in range(self.max_enemies):
-            spider=(Spider( [self.all_sprites, self.enemy_sprites], self.collision_sprites))
-        
-        
+        self.generate_enemies()
+
         
     def handle_events(self, event):
         pass
-    
-    def collision(self):
-        for sprite in self.player.bullets.sprites():
-                if pygame.sprite.spritecollideany(sprite, self.enemy_sprites):
-                    sprite.kill()
-                if pygame.sprite.spritecollideany(sprite, self.collision_sprites):
-                    sprite.kill()
-
     def render(self, screen):
         self.display_surface.fill(SCREEN_COLOR)
         self.all_sprites.custom_draw(self.player)
     def update(self, delta_time):
-        self.collision()
         self.all_sprites.update(delta_time)
+
+    def generate_enemies(self):
+        # Generate x number of enemies per wave
+        count = 0
+        for i in range(self.max_enemies):
+            spider=(Spider( [self.all_sprites, self.enemy_sprites, self.collision_sprites], self.collision_sprites))
+            for sprite in self.collision_sprites.sprites():
+                if hasattr(sprite, "hitbox"):
+                    if spider.hitbox.colliderect(sprite.hitbox):
+                        count += 1   
+        # check if enemy is generated in collision block          
+        print(count)
+        # Generate enemies constantly for x amount of time
 
 
 class CameraGroup(pygame.sprite.Group):

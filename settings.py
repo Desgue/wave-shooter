@@ -17,6 +17,4 @@ ASSAULT_PLAYER_SPRITESHEET = "./assets/Soldiers/Assault-Class.png"
 SCARAB_SPRITESHEET_SRC = "./assets/Robots/Scarab.png"
 SPIDER_SPRITESHEET_SRC = "./assets/Robots/Spider.png"
 WASP_SPRITESHEET = "./assets/Robots/Wasp.png"
-BULLET_SPRITESHEET_SRC = "./assets/Projectiles/Projectiles.png"
-BULLET_WIDTH, BULLET_HEIGHT = 8,8
 FLOOR = "./assets/graphics/floor.png"
