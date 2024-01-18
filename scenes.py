@@ -13,7 +13,7 @@ class GameScene:
         self.all_sprites = CameraGroup()
         self.collision_sprites = pygame.sprite.Group()
         self.enemy_sprites = pygame.sprite.Group()
-        self.enemies = []
+        self.enemy_sprites = []
         self.max_enemies = 100
         self.setup()
     
@@ -33,14 +33,24 @@ class GameScene:
         #Spawn Player
         for obj in tmx_data.get_layer_by_name("Player"):
             if obj.name == "Start":
-                self.player = Player( (obj.x* SCALE, obj.y* SCALE), self.all_sprites, self.collision_sprites)
+                self.player = Player( (obj.x* SCALE, obj.y* SCALE), self.all_sprites, self.collision_sprites, self.enemy_sprites)
 
         # Enemies
-        self.generate_enemies()
-
+        for i in range(self.max_enemies):
+            Spider( [self.all_sprites, self.enemy_sprites], self.collision_sprites)
+        
+        
         
     def handle_events(self, event):
         pass
+    
+    def collision(self):
+        for sprite in self.player.bullets.sprites():
+                if pygame.sprite.spritecollideany(sprite, self.enemy_sprites):
+                    sprite.kill()
+                if pygame.sprite.spritecollideany(sprite, self.collision_sprites):
+                    sprite.kill()
+
     def render(self, screen):
         self.display_surface.fill(SCREEN_COLOR)
         self.all_sprites.custom_draw(self.player)

@@ -4,7 +4,7 @@ from spritesheet import Spritesheet
 from random import randrange
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self,pos, group, collision_sprites):
+    def __init__(self,pos, group, collision_sprites, enemies_sprites):
         pygame.sprite.Sprite.__init__(self, group)
         self.spritesheet = Spritesheet(ASSAULT_PLAYER_SPRITESHEET)
         
@@ -21,8 +21,16 @@ class Player(pygame.sprite.Sprite):
         self.pos = pygame.math.Vector2(self.rect.center)
         self.velocity = PLAYER_VELOCITY
 
+        #Hitpoint
+        self.hitpoints = 100
+
         #Collision
         self.collision_sprites = collision_sprites
+
+        # Shooting config
+        self.shooting = False
+        self.bullets = pygame.sprite.Group()
+        
      
     def load_sprites(self):
         sprites_coords = self.spritesheet.parse_sheet(SPRITE_WIDTH, SPRITE_HEIGHT)
@@ -98,7 +106,14 @@ class Player(pygame.sprite.Sprite):
             if self.current_sprite >= len(self.walk_sprites):
                 self.current_sprite = 0
             self.image = self.walk_sprites[int(self.current_sprite)]
-
+        self.animate_death(dt)
+    def animate_death(self, dt):
+        if self.hitpoints >= 0:
+            self.current_sprite  = 0
+            self.image = self.death_sprites[self.current_sprite]
+            self.current_sprite += dt
+            if self.current_sprite >= len(self.death_sprites):
+                print("Game Over")
     def input(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w] or keys[pygame.K_UP]:
@@ -141,6 +156,9 @@ class Player(pygame.sprite.Sprite):
                         if self.direction.y < 0: self.hitbox.top = sprite.hitbox.bottom
                         self.rect.centery = self.hitbox.centery
                         self.pos.y = self.hitbox.centery
+        if pygame.sprite.spritecollideany(self, self.enemies_sprites):
+            self.hitpoints -= 10
+
 
     def handle_movement(self, delta_time):
 
@@ -169,7 +187,7 @@ class Scarab(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self, group)
 
         # Sprite Config
-        self.spritesheet = SCARAB_SPRITESHEET
+        self.spritesheet = Spritesheet(SCARAB_SPRITESHEET_SRC)
         self.load_sprites()
         self.current_sprite = 0
         self.image = self.idle_sprites[self.current_sprite]
@@ -260,6 +278,8 @@ class Spider(pygame.sprite.Sprite):
         left, top  = float(randrange(0, SCREEN_WIDTH *SCALE, SPRITE_WIDTH * SCALE)), float(randrange(0, SCREEN_HEIGHT * SCALE, SPRITE_HEIGHT * SCALE))
         self.rect = self.image.get_rect(center = (left,top))
         self.hitbox = self.rect.copy().inflate(-SPRITE_WIDTH * SCALE * 0.2, -SPRITE_HEIGHT * SCALE * 0.2)
+        if pygame.sprite.spritecollideany(self, self.collision_sprites):
+            self.kill()
             
     def load_sprites(self):
         sprites_coords = self.spritesheet.parse_sheet(SPRITE_WIDTH, SPRITE_HEIGHT)
