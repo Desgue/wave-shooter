@@ -1,3 +1,4 @@
+from os import error
 import pygame
 from settings import SPRITE_WIDTH, SPRITE_HEIGHT, SCALE
 
@@ -5,7 +6,10 @@ from settings import SPRITE_WIDTH, SPRITE_HEIGHT, SCALE
 
 class Spritesheet(object):
     def __init__(self, filename):
-        self.spritesheet = pygame.image.load(filename).convert_alpha()
+        try:
+            self.spritesheet = pygame.image.load(filename).convert_alpha() 
+        except:
+            print("cant load image")
 
 
     def get_sprite(self, x, y , w, h):
@@ -22,7 +26,6 @@ class Spritesheet(object):
 
         sprites_per_state = int(sheet_w / sprite_w)
         number_of_states = int(sheet_h / sprite_h)
-
         state = []
         all_states = []
 
@@ -30,7 +33,6 @@ class Spritesheet(object):
         
         for i in range(1, number_of_states + 1):
             for j in range(1, sprites_per_state +1):
-
                 coord = pygame.math.Vector2( (j-1) * sprite_w, (i-1) * sprite_h)
                 state.append(coord)
             all_states.append(state)

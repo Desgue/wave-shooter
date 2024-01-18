@@ -8,6 +8,7 @@ class Player(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self, group)
         self.spritesheet = Spritesheet(ASSAULT_PLAYER_SPRITESHEET)
         
+        # Sprite config
         self.load_sprites()
         self.current_sprite = 0
         self.image = self.idle_sprites[self.current_sprite]
@@ -23,6 +24,11 @@ class Player(pygame.sprite.Sprite):
 
         #Collision
         self.collision_sprites = collision_sprites
+
+        # Shooting config
+        self.shooting = False
+        self.bullets = pygame.sprite.Group()
+        
      
     def load_sprites(self):
         sprites_coords = self.spritesheet.parse_sheet(SPRITE_WIDTH, SPRITE_HEIGHT)
@@ -122,6 +128,12 @@ class Player(pygame.sprite.Sprite):
         else: 
             self.idle = True
             self.direction.x = 0
+        # Shooting input
+        left_mouse_press = pygame.mouse.get_pressed()[0]
+        if left_mouse_press:
+            mouse_pos = pygame.mouse.get_pos()
+            self.shoot(self.status, mouse_pos)
+
     
     def flip(self):
         if self.status == "left":
@@ -154,8 +166,11 @@ class Player(pygame.sprite.Sprite):
         self.rect.centery = self.hitbox.centery
         self.collision("vertical")
 
-    def shoot(self):
-        pass
+    def shoot(self, status, mouse_pos):
+        if status == "right":
+            self.groups()[0].add(Bullet((self.rect.bottomright[0], self.rect.centery), self.bullets, self.collision_sprites, self.status))
+        if status == "left":
+            self.groups()[0].add(Bullet((self.rect.bottomright[0] - 32, self.rect.centery), self.bullets, self.collision_sprites, self.status))
 
     def update(self, delta_time):
         self.animate(delta_time)
@@ -316,6 +331,7 @@ class Spider(pygame.sprite.Sprite):
                 self.current_sprite = 0
             self.image = self.idle_sprites[int(self.current_sprite)]
 
+
     def update(self, dt):
         self.animate(dt)
 
@@ -357,3 +373,26 @@ class Wasp(pygame.sprite.Sprite):
 
     def update(self, dt):
         self.animate(dt)
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self,pos, group, collision_sprites, status) -> None:
+        super().__init__(group)
+        self.spritesheet = Spritesheet(BULLET_SPRITESHEET_SRC)
+        self.collision_sprites = collision_sprites
+        self.status = status
+        self.load_sprites(pos)
+        
+        
+    def load_sprites(self, pos):
+        sprite_coords = self.spritesheet.parse_sheet(BULLET_WIDTH, BULLET_HEIGHT)
+        self.image = self.spritesheet.get_sprite(int(sprite_coords["sprite1"][:1][0].x), int(sprite_coords["sprite1"][:1][0].y), BULLET_WIDTH, BULLET_HEIGHT)
+        self.rect = self.image.get_rect(center = pos)
+        self.hitbox = self.rect.copy().inflate(-self.rect.x  * 0.5, -self.rect.y  * 0.5)
+    
+
+
+    def update(self, delta_time):
+        if self.status == "left":
+            self.rect.x += 1000 * delta_time * -1
+        if self.status == "right":
+            self.rect.x += 1000 * delta_time
