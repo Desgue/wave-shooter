@@ -12,8 +12,8 @@ class GameScene:
         self.floor_img = pygame.image.load(FLOOR).convert_alpha()
         self.all_sprites = CameraGroup()
         self.collision_sprites = pygame.sprite.Group()
-        self.enemy_sprites = pygame.sprite.Group()
-        self.enemy_sprites = []
+        self.enemies_sprites = pygame.sprite.Group()
+        self.enemies_sprites = []
         self.max_enemies = 100
         self.setup()
     
@@ -33,11 +33,11 @@ class GameScene:
         #Spawn Player
         for obj in tmx_data.get_layer_by_name("Player"):
             if obj.name == "Start":
-                self.player = Player( (obj.x* SCALE, obj.y* SCALE), self.all_sprites, self.collision_sprites, self.enemy_sprites)
+                self.player = Player( (obj.x* SCALE, obj.y* SCALE), self.all_sprites, self.collision_sprites, self.enemies_sprites)
 
         # Enemies
         for i in range(self.max_enemies):
-            Spider( [self.all_sprites, self.enemy_sprites], self.collision_sprites)
+            Spider( [self.all_sprites, self.enemies_sprites], self.collision_sprites)
         
         
         
@@ -46,7 +46,7 @@ class GameScene:
     
     def collision(self):
         for sprite in self.player.bullets.sprites():
-                if pygame.sprite.spritecollideany(sprite, self.enemy_sprites):
+                if pygame.sprite.spritecollideany(sprite, self.enemies_sprites):
                     sprite.kill()
                 if pygame.sprite.spritecollideany(sprite, self.collision_sprites):
                     sprite.kill()
@@ -61,7 +61,7 @@ class GameScene:
         # Generate x number of enemies per wave
         count = 0
         for i in range(self.max_enemies):
-            spider=(Spider( [self.all_sprites, self.enemy_sprites, self.collision_sprites], self.collision_sprites))
+            spider=(Spider( [self.all_sprites, self.enemies_sprites, self.collision_sprites], self.collision_sprites))
             for sprite in self.collision_sprites.sprites():
                 if hasattr(sprite, "hitbox"):
                     if spider.hitbox.colliderect(sprite.hitbox):

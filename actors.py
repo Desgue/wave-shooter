@@ -108,6 +108,7 @@ class Player(pygame.sprite.Sprite):
                 self.current_sprite = 0
             self.image = self.walk_sprites[int(self.current_sprite)]
         self.animate_death(dt)
+
     def animate_death(self, dt):
         if self.hitpoints >= 0:
             self.current_sprite  = 0
@@ -159,6 +160,7 @@ class Player(pygame.sprite.Sprite):
                         self.pos.y = self.hitbox.centery
         if pygame.sprite.spritecollideany(self, self.enemies_sprites):
             self.hitpoints -= 10
+            print(self.hitpoints)
 
 
     def handle_movement(self, delta_time):
