@@ -22,7 +22,7 @@ class Player(pygame.sprite.Sprite):
         self.velocity = PLAYER_VELOCITY
 
         #Hitpoint
-        self.hitpoints = 100
+        self.hitpoints = 200
 
         #Collision
         self.collision_sprites = collision_sprites
@@ -31,6 +31,7 @@ class Player(pygame.sprite.Sprite):
         # Shooting config
         self.shooting = False
         self.bullets = pygame.sprite.Group()
+
         
      
     def load_sprites(self):
@@ -140,6 +141,9 @@ class Player(pygame.sprite.Sprite):
             self.direction.x = 0
 
         # Shooting
+        if pygame.mouse.get_pressed()[0]:
+            if self.status == "left": Bullet((self.rect.centerx - BULLET_WIDTH * 2, self.rect.centery),[self.groups()[0], self.bullets],self.enemies_sprites, self.status)
+            else: Bullet((self.rect.centerx + BULLET_WIDTH * 2, self.rect.centery),[self.groups()[0], self.bullets],self.enemies_sprites, self.status)
         
     def flip(self):
         if self.status == "left":
@@ -276,6 +280,7 @@ class Spider(pygame.sprite.Sprite):
         self.load_sprites()
         self.image = self.idle_sprites[self.current_sprite]
         self.randomize_pos()
+        self.hitpoints = 100
 
     def randomize_pos(self):
         left, top  = float(randrange(0, SCREEN_WIDTH *SCALE, SPRITE_WIDTH * SCALE)), float(randrange(0, SCREEN_HEIGHT * SCALE, SPRITE_HEIGHT * SCALE))
@@ -338,8 +343,10 @@ class Spider(pygame.sprite.Sprite):
             if self.current_sprite >= len(self.idle_sprites):
                 self.current_sprite = 0
             self.image = self.idle_sprites[int(self.current_sprite)]
-
+    def death(self):
+        if self.hitpoints <= 0: self.kill()
     def update(self, dt):
+        self.death()
         self.animate(dt)
 
 
@@ -380,3 +387,27 @@ class Wasp(pygame.sprite.Sprite):
 
     def update(self, dt):
         self.animate(dt)
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, pos, group, enemies_sprites, status) -> None:
+        super().__init__(group)
+        self.spritesheet = Spritesheet(BULLET_SPRITESHEET_SRC)
+        self.load_sprites()
+        self.rect = self.image.get_rect(center = pos)
+        self.velocity = 800
+        self.status = status
+        self.enemies_sprites = enemies_sprites
+
+    def load_sprites(self):
+        sprites_coords = self.spritesheet.parse_sheet(BULLET_WIDTH, BULLET_HEIGHT)
+        self.image = self.spritesheet.get_sprite(sprites_coords["sprite1"][0].x, sprites_coords["sprite1"][0].y, BULLET_WIDTH, BULLET_HEIGHT)
+
+    
+
+    def update(self, delta_time):
+        if self.status == "left":
+            direction = -1
+        else: direction = 1
+        self.rect.centerx += round(self.velocity  * delta_time * direction)
+        if self.rect.x <= 0 or self.rect.x >= SCREEN_WIDTH * SCALE: self.kill()
+            

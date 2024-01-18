@@ -12,9 +12,12 @@ PLAYER_CENTER = (SCREEN_WIDTH / 2 - PLAYER_WIDTH / 2 , SCREEN_HEIGHT / 2 - PLAYE
 PLAYER_VELOCITY = 150
 PLAYER_COLOR = "white"
 
+BULLET_WIDTH, BULLET_HEIGHT = 8, 8
+
 SPRITE_WIDTH, SPRITE_HEIGHT = 16, 16
 ASSAULT_PLAYER_SPRITESHEET = "./assets/Soldiers/Assault-Class.png"
 SCARAB_SPRITESHEET_SRC = "./assets/Robots/Scarab.png"
 SPIDER_SPRITESHEET_SRC = "./assets/Robots/Spider.png"
 WASP_SPRITESHEET = "./assets/Robots/Wasp.png"
+BULLET_SPRITESHEET_SRC = "./assets/Projectiles/Projectiles.png"
 FLOOR = "./assets/graphics/floor.png"
