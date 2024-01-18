@@ -26,6 +26,7 @@ class Player(pygame.sprite.Sprite):
 
         #Collision
         self.collision_sprites = collision_sprites
+        self.enemies_sprites = enemies_sprites
 
         # Shooting config
         self.shooting = False
