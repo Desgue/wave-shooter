@@ -43,7 +43,8 @@ class GameScene:
         
         
     def handle_events(self, event):
-        pass
+        self.player.handle_keypress(event)
+        
     
     def collision(self):
         def enemy_callback(bullet, enemy):

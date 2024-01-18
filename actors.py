@@ -1,7 +1,10 @@
+from typing import Self
 import pygame
+from pygame.sprite import _Group
 from settings import *
 from spritesheet import Spritesheet
 from random import randrange
+from math import degrees, atan2
 
 class Player(pygame.sprite.Sprite):
     def __init__(self,pos, group, collision_sprites, enemies_sprites):
@@ -16,7 +19,7 @@ class Player(pygame.sprite.Sprite):
         self.hitbox = self.rect.copy().inflate((-self.rect.width * SCALE * 0.15 , -self.rect.height * SCALE * 0.15))
 
         # Movement Attributes
-        self.status = "right"
+        self.facing = "right"
         self.direction = pygame.math.Vector2()
         self.pos = pygame.math.Vector2(self.rect.center)
         self.velocity = PLAYER_VELOCITY
@@ -29,7 +32,12 @@ class Player(pygame.sprite.Sprite):
         self.enemies_sprites = enemies_sprites
 
         # Shooting config
-        self.shooting = False
+        self.ammo = 100
+        self.fire_cooldown = 100
+        self.reload_cooldown = 1500
+        self.reloading = False
+        self.last_reload_time = 0
+        self.last_fired = 0
         self.bullets = pygame.sprite.Group()
 
         
@@ -129,11 +137,11 @@ class Player(pygame.sprite.Sprite):
             self.direction.y = 0
 
         if (keys[pygame.K_a] or keys[pygame.K_LEFT]) :
-            self.status = "left"
+            self.facing = "left"
             self.idle = False
             self.direction.x = -1
         elif keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            self.status = "right"
+            self.facing = "right"
             self.idle = False
             self.direction.x = 1
         else: 
@@ -142,7 +150,7 @@ class Player(pygame.sprite.Sprite):
         self.shoot()
         
     def flip(self):
-        if self.status == "left":
+        if self.facing == "left":
             self.image = pygame.transform.flip(self.image, True, False)
     
     def collision(self, direction):
@@ -174,10 +182,45 @@ class Player(pygame.sprite.Sprite):
         self.collision("vertical")
 
     def shoot(self):
-        if pygame.mouse.get_pressed()[0]:
-            if self.status == "left": Bullet((self.rect.centerx - BULLET_WIDTH * 2, self.rect.centery),[self.groups()[0], self.bullets],self.enemies_sprites, self.status)
-            else: Bullet((self.rect.centerx + BULLET_WIDTH * 2, self.rect.centery),[self.groups()[0], self.bullets],self.enemies_sprites, self.status)
+        if self.ammo > 0 and self.done_reloading():
+            if pygame.mouse.get_pressed()[0]:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_CROSSHAIR)
+                mx, my = pygame.mouse.get_pos() 
+                offset = pygame.math.Vector2(SCREEN_WIDTH / 2 - self.rect.centerx, SCREEN_HEIGHT / 2 - self.rect.centery)
+                mx = (mx  - offset.x )
+                my = (my - offset.y )
 
+                x,y = self.rect.center
+                direction = pygame.math.Vector2(mx - x, my - y).normalize()
+                angle = direction.angle_to((mx*SCALE,my*SCALE))
+
+                if direction.x < 0: 
+                    self.facing = "left"
+                    x, y = self.rect.centerx - BULLET_WIDTH * SCALE, self.rect.centery
+                else: 
+                    self.facing = "right"
+                    x,y = self.rect.centerx + BULLET_WIDTH * SCALE, self.rect.centery
+
+                now = pygame.time.get_ticks()
+                if now - self.last_fired > self.fire_cooldown:
+                    Bullet( (x, y),[self.groups()[0], self.bullets],self.enemies_sprites, direction, angle)
+                    self.last_fired = pygame.time.get_ticks()
+                    self.ammo -= 1
+    
+    def reload(self, event):
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+            self.last_reload_time = pygame.time.get_ticks()
+            self.reloading = True
+            self.ammo = 100
+
+    def done_reloading(self):
+        now = pygame.time.get_ticks()
+        if self.reloading and now - self.last_reload_time > self.reload_cooldown:
+            self.reloading = False
+            self.last_reload_time = 0
+        return not self.reloading
+    def handle_keypress(self, event):
+        self.reload(event)
     def update(self, delta_time):
         self.animate(delta_time)
         self.flip()
@@ -391,15 +434,32 @@ class Wasp(pygame.sprite.Sprite):
     def update(self, dt):
         self.animate(dt)
 
-class Bullet(pygame.sprite.Sprite):
-    def __init__(self, pos, group, enemies_sprites, status) -> None:
+
+class Weapon(pygame.sprite.Sprite):
+    def __init__(self, group) -> None:
         super().__init__(group)
+        self.ammo = 100
+        self.fire_cooldown = 100
+        self.reload_cooldown = 1500
+        self.reloading = False
+        self.last_reload_time = 0
+        self.last_fired = 0
+        self.bullets = pygame.sprite.Group()
+
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, pos, group, enemies_sprites, direction, angle) -> None:
+        super().__init__(group)
+        # Sprites
         self.spritesheet = Spritesheet(BULLET_SPRITESHEET_SRC)
         self.load_sprites()
-        self.rect = self.image.get_rect(center = pos)
-        self.velocity = 800
-        self.status = status
         self.enemies_sprites = enemies_sprites
+
+        # Movement 
+        self.pos = pos
+        self.rect = self.image.get_rect(center = self.pos)
+        self.dir = direction
+        self.angle = angle
+        self.speed = 800
 
     def load_sprites(self):
         sprites_coords = self.spritesheet.parse_sheet(BULLET_WIDTH, BULLET_HEIGHT)
@@ -408,9 +468,8 @@ class Bullet(pygame.sprite.Sprite):
     
 
     def update(self, delta_time):
-        if self.status == "left":
-            direction = -1
-        else: direction = 1
-        self.rect.centerx += round(self.velocity  * delta_time * direction)
+        pygame.transform.rotate(self.image, self.angle)
+        self.pos = (self.pos[0] + self.dir.x * self.speed * delta_time, self.pos[1] + self.dir.y * self.speed *  delta_time)
+        self.rect.center = self.pos
         if self.rect.x <= 0 or self.rect.x >= SCREEN_WIDTH * SCALE: self.kill()
             

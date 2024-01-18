@@ -1,0 +1,6 @@
+Unit Vector normalization and angle calculation for bullet shooting:
+https://github.com/Rabbid76/PyGameExamplesAndAnswers/blob/master/documentation/pygame/pygame_move_towards_target.md#shoot-bullets-towards-target-or-mouse
+https://stackoverflow.com/questions/59977052/shooting-a-bullet-in-pygame-in-the-direction-of-mouse 
+
+Timed reload mechanism:
+https://stackoverflow.com/questions/33293081/how-do-i-make-a-reload-timer-for-my-players-weapon-in-pygame

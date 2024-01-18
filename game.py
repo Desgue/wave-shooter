@@ -26,6 +26,6 @@ class Game:
         pygame.quit()
     def handle_events(self):   
         for event in pygame.event.get():
+            self.manager.scene.handle_events(event)
             if event.type == pygame.QUIT:
                 self.running = False
-            self.manager.scene.handle_events(event)
