@@ -50,9 +50,10 @@ class GameScene:
         def enemy_callback(bullet, enemy):
             if pygame.sprite.collide_rect(bullet, enemy):
                 if enemy.hitpoints <= 0:
-                    self.current_score += 10
+                    self.current_score += enemy.killing_points
                     enemy.kill()
-                enemy.hitpoints -= 1.5
+                    print(self.current_score)
+                enemy.hitpoints -= self.player.weapon.damage
                 return True
             else: return False
 

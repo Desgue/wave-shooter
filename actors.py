@@ -1,6 +1,5 @@
 from typing import Self
 import pygame
-from pygame.sprite import _Group
 from settings import *
 from spritesheet import Spritesheet
 from random import randrange
@@ -39,6 +38,8 @@ class Player(pygame.sprite.Sprite):
         self.last_reload_time = 0
         self.last_fired = 0
         self.bullets = pygame.sprite.Group()
+        self.weapon = Weapon(bullet_groups = [self.groups()[0], self.bullets], 
+                             enemy_group = self.enemies_sprites )
 
         
      
@@ -124,6 +125,7 @@ class Player(pygame.sprite.Sprite):
             self.current_sprite += 2 * dt
             print("Game Over")
             """ if self.current_sprite >= len(self.death_sprites): """
+    
     def input(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w] or keys[pygame.K_UP]:
@@ -168,7 +170,6 @@ class Player(pygame.sprite.Sprite):
                         self.rect.centery = self.hitbox.centery
                         self.pos.y = self.hitbox.centery           
 
-
     def handle_movement(self, delta_time):
 
         self.pos.x += self.velocity * self.direction.x * delta_time
@@ -182,7 +183,7 @@ class Player(pygame.sprite.Sprite):
         self.collision("vertical")
 
     def shoot(self):
-        if self.ammo > 0 and self.done_reloading():
+        if self.weapon.done_reloading():
             if pygame.mouse.get_pressed()[0]:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_CROSSHAIR)
                 mx, my = pygame.mouse.get_pos() 
@@ -201,26 +202,10 @@ class Player(pygame.sprite.Sprite):
                     self.facing = "right"
                     x,y = self.rect.centerx + BULLET_WIDTH * SCALE, self.rect.centery
 
-                now = pygame.time.get_ticks()
-                if now - self.last_fired > self.fire_cooldown:
-                    Bullet( (x, y),[self.groups()[0], self.bullets],self.enemies_sprites, direction, angle)
-                    self.last_fired = pygame.time.get_ticks()
-                    self.ammo -= 1
-    
-    def reload(self, event):
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
-            self.last_reload_time = pygame.time.get_ticks()
-            self.reloading = True
-            self.ammo = 100
+                self.weapon.fire((x,y), direction, angle)
 
-    def done_reloading(self):
-        now = pygame.time.get_ticks()
-        if self.reloading and now - self.last_reload_time > self.reload_cooldown:
-            self.reloading = False
-            self.last_reload_time = 0
-        return not self.reloading
     def handle_keypress(self, event):
-        self.reload(event)
+        self.weapon.reload(event)
     def update(self, delta_time):
         self.animate(delta_time)
         self.flip()
@@ -242,6 +227,7 @@ class Scarab(pygame.sprite.Sprite):
         self.idle = True        
         self.randomize_pos()
         self.hitpoints = 100
+        self.killing_points = 10
 
         # Collision
         self.collision_sprites = collision_sprites
@@ -327,6 +313,7 @@ class Spider(pygame.sprite.Sprite):
         self.image = self.idle_sprites[self.current_sprite]
         self.randomize_pos()
         self.hitpoints = 150
+        self.killing_points = 15
 
     def randomize_pos(self):
         left, top  = float(randrange(0, SCREEN_WIDTH *SCALE, SPRITE_WIDTH * SCALE)), float(randrange(0, SCREEN_HEIGHT * SCALE, SPRITE_HEIGHT * SCALE))
@@ -435,16 +422,40 @@ class Wasp(pygame.sprite.Sprite):
         self.animate(dt)
 
 
-class Weapon(pygame.sprite.Sprite):
-    def __init__(self, group) -> None:
-        super().__init__(group)
-        self.ammo = 100
+class Weapon(object):
+    def __init__(self, bullet_groups, enemy_group) -> None:
+        self.bullet_groups = bullet_groups
+        self.enemy_group = enemy_group
+        self.max_ammo = 50
+        self.ammo = self.max_ammo
+        self.damage = 5
         self.fire_cooldown = 100
         self.reload_cooldown = 1500
         self.reloading = False
         self.last_reload_time = 0
         self.last_fired = 0
-        self.bullets = pygame.sprite.Group()
+
+
+    def fire(self, pos, direction, angle):
+        now = pygame.time.get_ticks()
+        if now - self.last_fired > self.fire_cooldown and self.ammo > 0:
+            Bullet( pos,self.bullet_groups ,self.enemy_group, direction, angle)
+            self.last_fired = pygame.time.get_ticks()
+            self.ammo -= 1
+
+    def reload(self, event):
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+            self.last_reload_time = pygame.time.get_ticks()
+            self.reloading = True
+            self.ammo = self.max_ammo
+
+    def done_reloading(self):
+        now = pygame.time.get_ticks()
+        if self.reloading and now - self.last_reload_time > self.reload_cooldown:
+            self.reloading = False
+            self.last_reload_time = 0
+        return not self.reloading
+    
 
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, pos, group, enemies_sprites, direction, angle) -> None:
