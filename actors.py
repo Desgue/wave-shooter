@@ -107,15 +107,14 @@ class Player(pygame.sprite.Sprite):
             if self.current_sprite >= len(self.walk_sprites):
                 self.current_sprite = 0
             self.image = self.walk_sprites[int(self.current_sprite)]
-        self.animate_death(dt)
 
     def animate_death(self, dt):
-        if self.hitpoints >= 0:
+        if self.hitpoints <= 0:
             self.current_sprite  = 0
             self.image = self.death_sprites[self.current_sprite]
-            self.current_sprite += dt
-            if self.current_sprite >= len(self.death_sprites):
-                print("Game Over")
+            self.current_sprite += 2 * dt
+            print("Game Over")
+            """ if self.current_sprite >= len(self.death_sprites): """
     def input(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w] or keys[pygame.K_UP]:
@@ -139,7 +138,9 @@ class Player(pygame.sprite.Sprite):
         else: 
             self.idle = True
             self.direction.x = 0
-    
+
+        # Shooting
+        
     def flip(self):
         if self.status == "left":
             self.image = pygame.transform.flip(self.image, True, False)
@@ -158,9 +159,8 @@ class Player(pygame.sprite.Sprite):
                         if self.direction.y < 0: self.hitbox.top = sprite.hitbox.bottom
                         self.rect.centery = self.hitbox.centery
                         self.pos.y = self.hitbox.centery
-        if pygame.sprite.spritecollideany(self, self.enemies_sprites):
+        if pygame.sprite.spritecollideany(self, self.enemies_sprites): 
             self.hitpoints -= 10
-            print(self.hitpoints)
 
 
     def handle_movement(self, delta_time):

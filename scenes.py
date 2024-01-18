@@ -13,7 +13,6 @@ class GameScene:
         self.all_sprites = CameraGroup()
         self.collision_sprites = pygame.sprite.Group()
         self.enemies_sprites = pygame.sprite.Group()
-        self.enemies_sprites = []
         self.max_enemies = 100
         self.setup()
     
