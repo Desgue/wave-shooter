@@ -13,7 +13,7 @@ class GameScene:
         self.all_sprites = CameraGroup()
         self.collision_sprites = pygame.sprite.Group()
         self.enemies_sprites = pygame.sprite.Group()
-        self.max_enemies = 100
+        self.max_enemies = 50
         self.current_score = 0
         self.setup()
     
@@ -37,9 +37,8 @@ class GameScene:
 
         # Enemies
         for i in range(self.max_enemies):
-            Spider( [self.all_sprites, self.enemies_sprites], self.collision_sprites)
-            Scarab([self.all_sprites, self.enemies_sprites], self.collision_sprites)
-        
+            Spider( [self.all_sprites, self.enemies_sprites], self.collision_sprites, self.player)
+            Scarab([self.all_sprites, self.enemies_sprites], self.collision_sprites, self.player)
         
         
     def handle_events(self, event):
@@ -49,11 +48,11 @@ class GameScene:
     def collision(self):
         def enemy_callback(bullet, enemy):
             if pygame.sprite.collide_rect(bullet, enemy):
+                enemy.hitpoints -= self.player.weapon.damage
                 if enemy.hitpoints <= 0:
                     self.current_score += enemy.killing_points
                     enemy.kill()
                     print(self.current_score)
-                enemy.hitpoints -= self.player.weapon.damage
                 return True
             else: return False
 
@@ -65,7 +64,7 @@ class GameScene:
         for sprite in self.player.enemies_sprites.sprites():
             if pygame.sprite.collide_rect(sprite, self.player):
                 if self.player.hitpoints <= 0: print("game over")
-                self.player.hitpoints -= 3
+                self.player.hitpoints -= 1
 
     def render(self, screen):
         self.display_surface.fill(SCREEN_COLOR)

@@ -4,3 +4,6 @@ https://stackoverflow.com/questions/59977052/shooting-a-bullet-in-pygame-in-the-
 
 Timed reload mechanism:
 https://stackoverflow.com/questions/33293081/how-do-i-make-a-reload-timer-for-my-players-weapon-in-pygame
+
+collision avoidance: 
+https://en.wikipedia.org/wiki/Boids

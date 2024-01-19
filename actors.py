@@ -1,9 +1,9 @@
-from typing import Self
+import posixpath
 import pygame
 from settings import *
 from spritesheet import Spritesheet
 from random import randrange
-from math import degrees, atan2
+from weapons import *
 
 class Player(pygame.sprite.Sprite):
     def __init__(self,pos, group, collision_sprites, enemies_sprites):
@@ -31,12 +31,6 @@ class Player(pygame.sprite.Sprite):
         self.enemies_sprites = enemies_sprites
 
         # Shooting config
-        self.ammo = 100
-        self.fire_cooldown = 100
-        self.reload_cooldown = 1500
-        self.reloading = False
-        self.last_reload_time = 0
-        self.last_fired = 0
         self.bullets = pygame.sprite.Group()
         self.weapon = Weapon(bullet_groups = [self.groups()[0], self.bullets], 
                              enemy_group = self.enemies_sprites )
@@ -213,9 +207,8 @@ class Player(pygame.sprite.Sprite):
         self.handle_movement(delta_time)
 
 
-
 class Scarab(pygame.sprite.Sprite):
-    def __init__(self, group, collision_sprites):
+    def __init__(self, group, collision_sprites, player):
         pygame.sprite.Sprite.__init__(self, group)
 
         # Sprite Config
@@ -224,10 +217,17 @@ class Scarab(pygame.sprite.Sprite):
         self.load_sprites()
         self.current_sprite = 0
         self.image = self.idle_sprites[self.current_sprite]
-        self.idle = True        
+        self.idle = True
+        self.count = 0        
         self.randomize_pos()
+
+        # Stats config
         self.hitpoints = 100
         self.killing_points = 10
+        self.speed = randrange(42,69,3)
+        self.facing = "right"
+
+        self.player = player
 
         # Collision
         self.collision_sprites = collision_sprites
@@ -280,9 +280,10 @@ class Scarab(pygame.sprite.Sprite):
             for i in range(len(sprites_coords["sprite5"][:1]))
             ]
     def randomize_pos(self):
-        left, top  = float(randrange(0, SCREEN_WIDTH *SCALE, SPRITE_WIDTH * SCALE)), float(randrange(0, SCREEN_HEIGHT * SCALE, SPRITE_HEIGHT * SCALE))
-        self.rect = self.image.get_rect(center = (left,top))
-        self.hitbox = self.rect.copy().inflate(-SPRITE_WIDTH * SCALE * 0.2, -SPRITE_HEIGHT * SCALE * 0.2)
+        self.pos  = pygame.math.Vector2(randrange(0, SCREEN_WIDTH *SCALE, SPRITE_WIDTH * SCALE), 
+                                        randrange(0, SCREEN_HEIGHT * SCALE, SPRITE_HEIGHT * SCALE))
+        self.rect = self.image.get_rect(center = self.pos)
+        self.hitbox = self.rect.copy().inflate(-SPRITE_WIDTH * SCALE * 0.25, -SPRITE_HEIGHT * SCALE * 0.25)
         if pygame.sprite.spritecollideany(self, self.collision_sprites):
             self.kill()
     def animate(self, delta_time):
@@ -291,34 +292,83 @@ class Scarab(pygame.sprite.Sprite):
             if self.current_sprite >= len(self.idle_sprites):
                 self.current_sprite = 0
             self.image = self.idle_sprites[int(self.current_sprite)]
+    
+    def collision(self, direction):
+        for sprite in self.collision_sprites.sprites():
+            if hasattr(sprite, "hitbox"):
+                if sprite.hitbox.colliderect(self.hitbox):
+                    if direction == "horizontal":
+                        if self.direction.x > 0: self.hitbox.right = sprite.hitbox.left
+                        if self.direction.x < 0: self.hitbox.left = sprite.hitbox.right
+                        self.rect.centerx = self.hitbox.centerx
+                        self.pos.x = self.hitbox.centerx
+                    if direction == "vertical":
+                        if self.direction.y > 0: self.hitbox.bottom = sprite.hitbox.top
+                        if self.direction.y < 0: self.hitbox.top = sprite.hitbox.bottom
+                        self.rect.centery = self.hitbox.centery
+                        self.pos.y = self.hitbox.centery
+        
+        for sprite in self.player.enemies_sprites.sprites():
+            if hasattr(sprite, "hitbox"):
+                if sprite.hitbox.colliderect(self.hitbox) and sprite != self:
+                    if direction == "horizontal":
+                        if self.direction.x > 0: self.hitbox.right = sprite.hitbox.left
+                        if self.direction.x < 0: self.hitbox.left = sprite.hitbox.right
+                        self.rect.centerx = self.hitbox.centerx
+                        self.pos.x = self.hitbox.centerx
+                    if direction == "vertical":
+                        if self.direction.y > 0: self.hitbox.bottom = sprite.hitbox.top
+                        if self.direction.y < 0: self.hitbox.top = sprite.hitbox.bottom
+                        self.rect.centery = self.hitbox.centery
+                        self.pos.y = self.hitbox.centery
+                    
 
     def handle_movement(self, delta_time):
-        pass
+        target = self.player.rect.center
+        self.direction = pygame.math.Vector2(target[0] - self.rect.centerx, target[1] - self.rect.centery)
+        if self.direction.length() != 0:
+            self.direction.normalize_ip()
+            self.pos.x += self.speed * self.direction.x * delta_time
+            self.hitbox.centerx = round(self.pos.x)
+            self.rect.centerx = self.hitbox.centerx
+            self.collision("horizontal")
+
+            self.pos.y += self.speed * self.direction.y * delta_time
+            self.hitbox.centery = round(self.pos.y)
+            self.rect.centery = self.hitbox.centery
+            self.collision("vertical")
+            
     
     def update(self, delta_time):
         self.animate(delta_time)
+        self.handle_movement(delta_time)
         
 
 class Spider(pygame.sprite.Sprite):
-    def __init__(self, group, collision_sprites) -> None:
+    def __init__(self, group, collision_sprites, player) -> None:
         super().__init__(group)
         self.display = pygame.display.get_surface()
         # Collision sprite group
         self.collision_sprites = collision_sprites
          # Sprite Config
+        self.player = player
         self.spritesheet = Spritesheet(SPIDER_SPRITESHEET_SRC)
         self.idle = True 
         self.current_sprite = 0       
         self.load_sprites()
         self.image = self.idle_sprites[self.current_sprite]
         self.randomize_pos()
-        self.hitpoints = 150
+         # Stats config
+        self.hitpoints = 100
         self.killing_points = 15
+        self.speed = randrange(69,120,3)
+        self.facing = "right"
 
     def randomize_pos(self):
-        left, top  = float(randrange(0, SCREEN_WIDTH *SCALE, SPRITE_WIDTH * SCALE)), float(randrange(0, SCREEN_HEIGHT * SCALE, SPRITE_HEIGHT * SCALE))
-        self.rect = self.image.get_rect(center = (left,top))
-        self.hitbox = self.rect.copy().inflate(-SPRITE_WIDTH * SCALE * 0.2, -SPRITE_HEIGHT * SCALE * 0.2)
+        self.pos  = pygame.math.Vector2(randrange(0, SCREEN_WIDTH *SCALE, SPRITE_WIDTH * SCALE), 
+                                        randrange(0, SCREEN_HEIGHT * SCALE, SPRITE_HEIGHT * SCALE))
+        self.rect = self.image.get_rect(center = self.pos)
+        self.hitbox = self.rect.copy().inflate(-SPRITE_WIDTH * SCALE * 0.25, -SPRITE_HEIGHT * SCALE * 0.25)
         if pygame.sprite.spritecollideany(self, self.collision_sprites):
             self.kill()
             
@@ -369,7 +419,48 @@ class Spider(pygame.sprite.Sprite):
             ) 
             for i in range(len(sprites_coords["sprite5"][:1]))
             ]
-    
+    def collision(self, direction):
+        for sprite in self.collision_sprites.sprites():
+            if hasattr(sprite, "hitbox"):
+                if sprite.hitbox.colliderect(self.hitbox):
+                    if direction == "horizontal":
+                        if self.direction.x > 0: self.hitbox.right = sprite.hitbox.left
+                        if self.direction.x < 0: self.hitbox.left = sprite.hitbox.right
+                        self.rect.centerx = self.hitbox.centerx
+                        self.pos.x = self.hitbox.centerx
+                    if direction == "vertical":
+                        if self.direction.y > 0: self.hitbox.bottom = sprite.hitbox.top
+                        if self.direction.y < 0: self.hitbox.top = sprite.hitbox.bottom
+                        self.rect.centery = self.hitbox.centery
+                        self.pos.y = self.hitbox.centery
+        
+        for sprite in self.player.enemies_sprites.sprites():
+            if hasattr(sprite, "hitbox"):
+                if sprite.hitbox.colliderect(self.hitbox) and sprite != self:
+                    if direction == "horizontal":
+                        if self.direction.x > 0: self.hitbox.right = sprite.hitbox.left
+                        if self.direction.x < 0: self.hitbox.left = sprite.hitbox.right
+                        self.rect.centerx = self.hitbox.centerx
+                        self.pos.x = self.hitbox.centerx
+                    if direction == "vertical":
+                        if self.direction.y > 0: self.hitbox.bottom = sprite.hitbox.top
+                        if self.direction.y < 0: self.hitbox.top = sprite.hitbox.bottom
+                        self.rect.centery = self.hitbox.centery
+                        self.pos.y = self.hitbox.centery
+    def handle_movement(self, delta_time):
+        target = self.player.rect.center
+        self.direction = pygame.math.Vector2(target[0] - self.rect.centerx, target[1] - self.rect.centery)
+        if self.direction.length() != 0:
+            self.direction.normalize_ip()
+            self.pos.x += self.speed * self.direction.x * delta_time
+            self.hitbox.centerx = round(self.pos.x)
+            self.rect.centerx = self.hitbox.centerx
+            self.collision("horizontal")
+
+            self.pos.y += self.speed * self.direction.y * delta_time
+            self.hitbox.centery = round(self.pos.y)
+            self.rect.centery = self.hitbox.centery
+            self.collision("vertical")
     def animate(self, dt):
         if self.idle:
             self.current_sprite += 3 * dt
@@ -379,7 +470,7 @@ class Spider(pygame.sprite.Sprite):
     def death(self):
         if self.hitpoints <= 0: self.kill()
     def update(self, dt):
-        
+        self.handle_movement(dt)
         self.animate(dt)
 
 
@@ -421,66 +512,3 @@ class Wasp(pygame.sprite.Sprite):
     def update(self, dt):
         self.animate(dt)
 
-
-class Weapon(object):
-    def __init__(self, bullet_groups, enemy_group) -> None:
-        self.bullet_groups = bullet_groups
-        self.enemy_group = enemy_group
-        self.max_ammo = 50
-        self.ammo = self.max_ammo
-        self.damage = 5
-        self.fire_cooldown = 100
-        self.reload_cooldown = 1500
-        self.reloading = False
-        self.last_reload_time = 0
-        self.last_fired = 0
-
-
-    def fire(self, pos, direction, angle):
-        now = pygame.time.get_ticks()
-        if now - self.last_fired > self.fire_cooldown and self.ammo > 0:
-            Bullet( pos,self.bullet_groups ,self.enemy_group, direction, angle)
-            self.last_fired = pygame.time.get_ticks()
-            self.ammo -= 1
-
-    def reload(self, event):
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
-            self.last_reload_time = pygame.time.get_ticks()
-            self.reloading = True
-            self.ammo = self.max_ammo
-
-    def done_reloading(self):
-        now = pygame.time.get_ticks()
-        if self.reloading and now - self.last_reload_time > self.reload_cooldown:
-            self.reloading = False
-            self.last_reload_time = 0
-        return not self.reloading
-    
-
-class Bullet(pygame.sprite.Sprite):
-    def __init__(self, pos, group, enemies_sprites, direction, angle) -> None:
-        super().__init__(group)
-        # Sprites
-        self.spritesheet = Spritesheet(BULLET_SPRITESHEET_SRC)
-        self.load_sprites()
-        self.enemies_sprites = enemies_sprites
-
-        # Movement 
-        self.pos = pos
-        self.rect = self.image.get_rect(center = self.pos)
-        self.dir = direction
-        self.angle = angle
-        self.speed = 800
-
-    def load_sprites(self):
-        sprites_coords = self.spritesheet.parse_sheet(BULLET_WIDTH, BULLET_HEIGHT)
-        self.image = self.spritesheet.get_sprite(sprites_coords["sprite1"][0].x, sprites_coords["sprite1"][0].y, BULLET_WIDTH, BULLET_HEIGHT)
-
-    
-
-    def update(self, delta_time):
-        pygame.transform.rotate(self.image, self.angle)
-        self.pos = (self.pos[0] + self.dir.x * self.speed * delta_time, self.pos[1] + self.dir.y * self.speed *  delta_time)
-        self.rect.center = self.pos
-        if self.rect.x <= 0 or self.rect.x >= SCREEN_WIDTH * SCALE: self.kill()
-            
