@@ -1,4 +1,3 @@
-import posixpath
 import pygame
 from settings import *
 from spritesheet import Spritesheet
@@ -206,6 +205,17 @@ class Player(pygame.sprite.Sprite):
         self.input()
         self.handle_movement(delta_time)
 
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, group) -> None:
+        super().__init__(group)
+    def randomize_pos(self):
+        self.pos  = pygame.math.Vector2(randrange(0, SCREEN_WIDTH *SCALE, SPRITE_WIDTH * SCALE), 
+                                        randrange(0, SCREEN_HEIGHT * SCALE, SPRITE_HEIGHT * SCALE))
+        self.rect = self.image.get_rect(center = self.pos)
+        self.hitbox = self.rect.copy().inflate(-SPRITE_WIDTH * SCALE * 0.25, -SPRITE_HEIGHT * SCALE * 0.25)
+        if pygame.sprite.spritecollideany(self, self.collision_sprites):
+            self.kill()
+
 
 class Scarab(pygame.sprite.Sprite):
     def __init__(self, group, collision_sprites, player):
@@ -331,6 +341,8 @@ class Scarab(pygame.sprite.Sprite):
             self.pos.x += self.speed * self.direction.x * delta_time
             self.hitbox.centerx = round(self.pos.x)
             self.rect.centerx = self.hitbox.centerx
+            if self.direction.x > 0: self.facing = "right"
+            if self.direction.x < 0 : self.facing = "left"
             self.collision("horizontal")
 
             self.pos.y += self.speed * self.direction.y * delta_time
@@ -338,11 +350,13 @@ class Scarab(pygame.sprite.Sprite):
             self.rect.centery = self.hitbox.centery
             self.collision("vertical")
             
-    
+    def flip(self):
+        if self.facing == "left":
+            self.image = pygame.transform.flip(self.image, True, False)   
     def update(self, delta_time):
-        self.animate(delta_time)
         self.handle_movement(delta_time)
-        
+        self.animate(delta_time)
+        self.flip()        
 
 class Spider(pygame.sprite.Sprite):
     def __init__(self, group, collision_sprites, player) -> None:
@@ -362,7 +376,7 @@ class Spider(pygame.sprite.Sprite):
         self.hitpoints = 100
         self.killing_points = 15
         self.speed = randrange(69,120,3)
-        self.facing = "right"
+        self.facing = "left"
 
     def randomize_pos(self):
         self.pos  = pygame.math.Vector2(randrange(0, SCREEN_WIDTH *SCALE, SPRITE_WIDTH * SCALE), 
@@ -455,6 +469,8 @@ class Spider(pygame.sprite.Sprite):
             self.pos.x += self.speed * self.direction.x * delta_time
             self.hitbox.centerx = round(self.pos.x)
             self.rect.centerx = self.hitbox.centerx
+            if self.direction.x > 0: self.facing = "right"
+            if self.direction.x < 0 : self.facing = "left"
             self.collision("horizontal")
 
             self.pos.y += self.speed * self.direction.y * delta_time
@@ -469,9 +485,14 @@ class Spider(pygame.sprite.Sprite):
             self.image = self.idle_sprites[int(self.current_sprite)]
     def death(self):
         if self.hitpoints <= 0: self.kill()
+
+    def flip(self):
+        if self.facing == "left":
+            self.image = pygame.transform.flip(self.image, True, False)    
     def update(self, dt):
-        self.handle_movement(dt)
         self.animate(dt)
+        self.flip()
+        self.handle_movement(dt)
 
 
 class Wasp(pygame.sprite.Sprite):
